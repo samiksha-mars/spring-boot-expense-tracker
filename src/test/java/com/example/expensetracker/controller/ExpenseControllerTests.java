@@ -60,6 +60,23 @@ class ExpenseControllerTests {
     }
 
     @Test
+    void amountsThatDoNotFitTheColumnAreRejectedAsBadRequest() throws Exception {
+        mockMvc.perform(post("/api/expenses")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"description": "Max", "amount": 99999999.99, "date": "2026-11-24"}
+                                """))
+                .andExpect(status().isCreated());
+        mockMvc.perform(post("/api/expenses")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"description": "Too big", "amount": 123456789.00, "date": "2026-11-24"}
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.amount").exists());
+    }
+
+    @Test
     void getReturnsExpenseById() throws Exception {
         Expense expense = save("Coffee", "3.20", "Food");
 
