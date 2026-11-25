@@ -134,7 +134,20 @@ class ExpenseControllerTests {
                         .content("""
                                 {"description": "Refund", "amount": -5, "date": "2026-11-24"}
                                 """))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value("Request validation failed"))
+                .andExpect(jsonPath("$.errors.amount").value("amount must be positive"));
         assertThat(repository.count()).isZero();
+    }
+
+    @Test
+    void unparseableDateReturnsProblemDetail() throws Exception {
+        mockMvc.perform(post("/api/expenses")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"description": "Coffee", "amount": 3.20, "date": "24/11/2026"}
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400));
     }
 }
